@@ -1,4 +1,4 @@
-﻿namespace Library
+﻿namespace LibraryAPI.Models
 {
     public class Library
     {
