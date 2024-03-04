@@ -1,11 +1,23 @@
+global using LibraryAPI.Models;
+using LibraryAPI.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddDbContext<DataContext>(options =>
+{
+    options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=librarydb;Trusted_Connection=True;TrustServerCertificate=true");
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+//builder.Services.AddMediatR(cfg:MediatRServiceConfiguration => cfg.RegisterServiseFromAssemlies((typeof(Program).Assembly)));
 
 var app = builder.Build();
 

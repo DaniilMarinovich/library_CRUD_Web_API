@@ -1,4 +1,4 @@
-﻿using LibraryAPI.Models;
+﻿using LibraryAPI.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,39 +8,23 @@ namespace LibraryAPI.Controllers
     [ApiController]
     public class LibraryController : ControllerBase
     {
-        private static List<Library> books = new List<Library>
-        {
-            new Library
-            {   ISBN = 1,
-                Title = "First",
-                Genre ="Fantasy",
-                Description = "It's my life",
-                Author = "Jake Styart",
-                TakeTime = DateTime.Now,
-                ReturnTime = new DateTime(2024, 12, 12)
-            },
+        private DataContext _context;
 
-            new Library
-            {   ISBN = 2,
-                Title = "Second",
-                Genre ="Fantasy",
-                Description = "It's my life",
-                Author = "Jake Styart",
-                TakeTime = DateTime.Now,
-                ReturnTime = new DateTime(2024, 12, 12)
-            }
-        };
+        public LibraryController(DataContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
         public async Task<ActionResult<List<Library>>> GetAllBooks()
         {
-            return Ok(books);
+            return Ok(await _context.Books.ToListAsync());
         }
 
         [HttpGet("isbn")]
         public async Task<ActionResult<Library>> GetSingleBook(int isbn)
         {
-            var book = books.Find(x => x.ISBN == isbn);
+            var book = await _context.Books.FindAsync(isbn);
 
             if (book == null)
                 return NotFound("Book doesn't exist.");
@@ -53,39 +37,44 @@ namespace LibraryAPI.Controllers
         public async Task<ActionResult<List<Library>>> AddBook(Library book)
         {
 
-            books.Add(book);
-            return Ok(books);
+            _context.Books.Add(book);
+            await _context.SaveChangesAsync();
+
+            return Ok(await _context.Books.ToListAsync());
         }
 
         [HttpPut("isbn")]
         public async Task<ActionResult<List<Library>>> UpdateBook(int isbn, Library request)
         {
-            var book = books.Find(x => x.ISBN == isbn);
+            var dbBook = await _context.Books.FindAsync(isbn);
 
-            if (book == null)
+            if (dbBook == null)
                 return NotFound("Book doesn't exist.");
 
-            book.Title = request.Title;
-            book.Genre = request.Genre;
-            book.Author = request.Author;
-            book.Description = request.Description;
-            book.TakeTime = request.TakeTime;
-            book.ReturnTime = request.ReturnTime;
+            dbBook.Title = request.Title;
+            dbBook.Genre = request.Genre;
+            dbBook.Author = request.Author;
+            dbBook.Description = request.Description;
+            dbBook.TakeTime = request.TakeTime;
+            dbBook.ReturnTime = request.ReturnTime;
 
-            return Ok(book);
+            await _context.SaveChangesAsync();
+
+            return Ok(await _context.Books.ToListAsync());
         }
 
         [HttpDelete("isbn")]
         public async Task<ActionResult<Library>> DeleteBook(int isbn)
         {
-            var book = books.Find(x => x.ISBN == isbn);
+            var book = await _context.Books.FindAsync(isbn);
 
             if (book == null)
                 return NotFound("Book doesn't exist.");
 
-            books.Remove(book);
+            _context.Books.Remove(book);
+            await _context.SaveChangesAsync();
 
-            return Ok(book);
+            return Ok(await _context.Books.ToListAsync());
         }
     }
 }
